@@ -61,6 +61,86 @@ net-triage report for: example.com
 OVERALL: FAIL
 ```
 
+## Example output
+
+Run against `github.com` with port 443 only and 5 latency samples:
+
+```
+$ net-triage github.com --ports 443 --latency-samples 5
+net-triage report for: github.com
+============================================================
+[ OK ] dns        DNS OK for github.com: 1 A, 0 AAAA in 7.5 ms
+[WARN] tcp:443    TCP github.com:443 reachable in 291.1 ms
+[WARN] http       https://github.com:443 -> 200 OK in 1521.7 ms
+[WARN] latency    Latency ~277.7 ms avg over 5 connect(s) (min 275.2, max 279.5) to github.com:443
+============================================================
+OVERALL: WARN
+```
+
+Exit code `1` — all checks reached the host, but TCP connect latency (~278 ms avg) and the
+HTTP response time (~1.5 s) both crossed the WARN threshold (>200 ms).
+
+Same host with `--json`:
+
+```
+$ net-triage github.com --ports 443 --json
+{
+    "host": "github.com",
+    "overall": "WARN",
+    "checks": [
+        {
+            "name": "dns",
+            "verdict": "PASS",
+            "summary": "DNS OK for github.com: 1 A, 0 AAAA in 7.2 ms",
+            "detail": {
+                "host": "github.com",
+                "ipv4": ["140.82.121.3"],
+                "ipv6": [],
+                "addresses": ["140.82.121.3"],
+                "resolve_ms": 7.16
+            }
+        },
+        {
+            "name": "tcp:443",
+            "verdict": "WARN",
+            "summary": "TCP github.com:443 reachable in 298.6 ms",
+            "detail": {
+                "host": "github.com",
+                "port": 443,
+                "reachable": true,
+                "connect_ms": 298.62
+            }
+        },
+        {
+            "name": "http",
+            "verdict": "WARN",
+            "summary": "https://github.com:443 -> 200 OK in 1570.1 ms",
+            "detail": {
+                "host": "github.com",
+                "port": 443,
+                "scheme": "https",
+                "status": 200,
+                "reason": "OK",
+                "latency_ms": 1570.08
+            }
+        },
+        {
+            "name": "latency",
+            "verdict": "WARN",
+            "summary": "Latency ~277.0 ms avg over 3 connect(s) (min 275.0, max 280.2) to github.com:443",
+            "detail": {
+                "host": "github.com",
+                "port": 443,
+                "samples": 3,
+                "avg_ms": 277.03,
+                "min_ms": 274.97,
+                "max_ms": 280.19
+            }
+        }
+    ]
+}
+```
+
 ### Exit codes
 
 | Code | Meaning |
